@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My PDF Library</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; text-align: center; padding: 20px; }
+    h1 { color: #333; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 10px 0; }
+    a { text-decoration: none; color: #007bff; font-weight: bold; }
+    a:hover { text-decoration: underline; }
+    iframe { width: 80%; height: 500px; border: 2px solid #ccc; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>📚 My PDF Collection</h1>
+  <ul id="pdf-list"></ul>
+  <iframe id="pdf-viewer" src="" hidden></iframe>
+
+  <script>
+    async function loadPDFs() {
+      const response = await fetch("pdfs.json");
+      const pdfs = await response.json();
+
+      const list = document.getElementById("pdf-list");
+      const viewer = document.getElementById("pdf-viewer");
+
+      pdfs.forEach(pdf => {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = "#";
+        link.textContent = pdf.name;
+        link.onclick = () => {
+          viewer.src = pdf.file;
+          viewer.hidden = false;
+        };
+        li.appendChild(link);
+        list.appendChild(li);
+      });
+    }
+    loadPDFs();
+  </script>
+</body>
+</html>
