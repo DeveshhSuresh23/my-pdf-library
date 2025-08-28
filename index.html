@@ -8,76 +8,69 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f9;
+      overflow: hidden;
     }
 
-    header {
-      background: #4a90e2;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
+    /* Background exam layout image */
+    .layout {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      background: url("exam-layout.png") no-repeat center top;
+      background-size: cover;
     }
 
-    .container {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      height: calc(100vh - 60px);
-    }
-
-    /* Sidebar */
+    /* Sidebar with PDF buttons */
     .sidebar {
-      background: #fff;
-      border-right: 1px solid #ccc;
-      padding: 20px;
+      position: absolute;
+      top: 100px;
+      left: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      max-height: 70vh;
       overflow-y: auto;
     }
 
-    .pdf-item {
+    .pdf-btn {
+      display: block;
+      margin: 5px 0;
+      padding: 8px 12px;
       background: #4a90e2;
       color: white;
-      margin-bottom: 10px;
-      padding: 12px;
-      border-radius: 6px;
-      text-align: center;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 14px;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: background 0.2s;
     }
 
-    .pdf-item:hover {
+    .pdf-btn:hover {
       background: #357abd;
     }
 
-    /* PDF Viewer area (blue box) */
-    .viewer {
-      background: #2f6d85;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-    }
-
-    iframe {
-      width: 95%;
-      height: 95%;
+    /* PDF viewer positioned inside the blue area */
+    .pdf-viewer {
+      position: absolute;
+      top: 120px;     /* adjust to match your blue box */
+      left: 160px;    /* adjust to match your blue box */
+      width: 1000px;  /* make bigger */
+      height: 550px;  /* make bigger */
       border: none;
-      border-radius: 6px;
       background: white;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
   </style>
 </head>
 <body>
-  <header>📚 My PDF Collection</header>
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar" id="pdf-list"></div>
 
-  <div class="container">
-    <div class="sidebar" id="pdf-list">
-      <!-- PDF buttons will load here -->
-    </div>
-    <div class="viewer">
-      <iframe id="pdf-viewer" src=""></iframe>
-    </div>
+    <!-- PDF Viewer -->
+    <iframe id="pdf-viewer" class="pdf-viewer"></iframe>
   </div>
 
   <script>
@@ -89,14 +82,13 @@
       const viewer = document.getElementById("pdf-viewer");
 
       pdfs.forEach(pdf => {
-        const item = document.createElement("div");
-        item.className = "pdf-item";
-        item.textContent = pdf.name;
-        item.onclick = () => {
-          // Load PDF into pdf.js viewer
-          viewer.src = `viewer/web/viewer.html?file=../../${pdf.file}`;
+        const btn = document.createElement("div");
+        btn.className = "pdf-btn";
+        btn.textContent = pdf.name;
+        btn.onclick = () => {
+          viewer.src = pdf.file;
         };
-        list.appendChild(item);
+        list.appendChild(btn);
       });
     }
     loadPDFs();
