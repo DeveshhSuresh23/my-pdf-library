@@ -26,6 +26,7 @@
       display: grid; 
       grid-template-columns: 250px 1fr; 
       flex: 1; /* Allows container to grow and fill remaining height */
+      overflow: hidden; /* Prevents scrollbars on the container itself */
     }
     
     /* Sidebar */
@@ -56,6 +57,7 @@
       padding: 20px; 
       display: flex; 
       flex-direction: column; 
+      overflow: hidden;
     }
     .viewer-card { 
       flex: 1; 
@@ -87,7 +89,7 @@
     .notes textarea { 
       flex: 1; /* Allows textarea to grow */
       width: 100%; 
-      height: 100px; 
+      min-height: 100px;
       resize: vertical; /* Allow vertical resizing only */
       padding: 8px; 
       border-radius: 6px; 
@@ -160,7 +162,7 @@
           btn.textContent = "📖 " + pdf.name;
           btn.onclick = async () => {
             pdfViewer.src = pdf.file;
-            currentPdf = pdf.file;
+            currentPdf = pdf.name;
             notesSection.style.display = "flex";
 
             const docRef = doc(db, "notes", currentPdf);
