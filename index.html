@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My PDF Library</title>
+    <title>My Photo Library</title>
     <style>
         body { 
             margin: 0; 
@@ -37,7 +37,7 @@
             padding: 20px; 
             overflow-y: auto; 
         }
-        .pdf-btn { 
+        .photo-btn { 
             background: #f3f4f6; 
             color: #111; 
             margin-bottom: 12px; 
@@ -48,7 +48,7 @@
             font-weight: bold; 
             font-size: 1.2rem; 
         }
-        .pdf-btn:hover { 
+        .photo-btn:hover { 
             background: #2563eb; 
             color: white; 
         }
@@ -68,13 +68,16 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
             display: flex; 
             flex-direction: column; 
+            align-items: center;
+            justify-content: center;
         }
-        iframe { 
-            flex: 1; 
-            width: 100%; 
-            height: 100%; 
+        .photo-viewer { 
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
             border: none; 
             border-radius: 6px; 
+            margin-bottom: 12px; 
         }
 
         /* Notes */
@@ -129,14 +132,14 @@
 </head>
 <body>
     <header>
-        <span>📚 My PDF Library</span>
+        <span>📷 My Photo Library</span>
         <span>A</span>
     </header>
     <div class="container">
-        <div class="sidebar" id="pdf-list"></div>
+        <div class="sidebar" id="photo-list"></div>
         <div class="main">
             <div class="viewer-card">
-                <iframe id="pdf-viewer" src=""></iframe>
+                <img id="photo-viewer" src="" alt="Selected Photo" class="photo-viewer">
                 <div class="notes" id="notes-section">
                     <textarea id="notes-text" placeholder="Write your notes here..."></textarea>
                     <button id="save-button">💾 Save Notes</button>
@@ -183,9 +186,9 @@
         }
         authenticate();
 
-        let currentPdf = null;
-        const pdfList = document.getElementById("pdf-list");
-        const pdfViewer = document.getElementById("pdf-viewer");
+        let currentPhoto = null;
+        const photoList = document.getElementById("photo-list");
+        const photoViewer = document.getElementById("photo-viewer");
         const notesSection = document.getElementById("notes-section");
         const notesText = document.getElementById("notes-text");
         const saveButton = document.getElementById("save-button");
@@ -194,7 +197,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("User is authenticated with UID:", user.uid);
-                loadPDFs();
+                loadPhotos();
             } else {
                 console.log("User is not authenticated.");
             }
@@ -208,26 +211,26 @@
             }, duration);
         }
 
-        async function loadPDFs() {
+        async function loadPhotos() {
             try {
-                const response = await fetch("pdfs.json");
+                const response = await fetch("photos.json");
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const pdfs = await response.json();
+                const photos = await response.json();
 
-                pdfList.innerHTML = '';
-                pdfs.forEach(pdf => {
+                photoList.innerHTML = '';
+                photos.forEach(photo => {
                     const btn = document.createElement("div");
-                    btn.className = "pdf-btn";
-                    btn.textContent = "📖 " + pdf.name;
+                    btn.className = "photo-btn";
+                    btn.textContent = "📷 " + photo.name;
                     btn.onclick = async () => {
-                        pdfViewer.src = pdf.file;
-                        currentPdf = pdf.name;
+                        photoViewer.src = photo.file;
+                        currentPhoto = photo.name;
                         notesSection.style.display = "flex";
 
                         const userId = auth.currentUser?.uid || 'anonymous';
-                        const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPdf);
+                        const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPhoto);
                         
                         try {
                             const docSnap = await getDoc(docRef);
@@ -236,20 +239,20 @@
                             console.error("Error fetching notes:", e);
                         }
                     };
-                    pdfList.appendChild(btn);
+                    photoList.appendChild(btn);
                 });
             } catch (e) {
-                console.error("Error loading PDFs:", e);
+                console.error("Error loading photos:", e);
                 const errorMsg = document.createElement("p");
-                errorMsg.textContent = "Error: Could not load PDF list. Check the console for details.";
-                pdfList.appendChild(errorMsg);
+                errorMsg.textContent = "Error: Could not load photo list. Check the console for details.";
+                photoList.appendChild(errorMsg);
             }
         }
 
         async function saveNotes() {
-            if (currentPdf && auth.currentUser) {
+            if (currentPhoto && auth.currentUser) {
                 const userId = auth.currentUser.uid;
-                const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPdf);
+                const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPhoto);
                 try {
                     await setDoc(docRef, { content: notesText.value });
                     showMessage("✅ Notes saved to cloud!");
@@ -258,7 +261,7 @@
                     showMessage("⚠️ Error saving notes. See console.");
                 }
             } else {
-                showMessage("⚠️ Open a PDF and ensure you are authenticated!");
+                showMessage("⚠️ Open a photo and ensure you are authenticated!");
             }
         }
 
@@ -266,4 +269,3 @@
     </script>
 </body>
 </html>
-
