@@ -1,49 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My PDF Library</title>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f9fafc; }
-    header { background: #2563eb; color: white; padding: 15px 20px; font-size: 1.4rem; font-weight: bold; display: flex; align-items: center; }
-    .container { display: grid; grid-template-columns: 250px 1fr; height: calc(100vh - 60px); }
-    
-    /* Sidebar */
-    .sidebar { background: #ffffff; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; }
-    .pdf-btn { background: #f3f4f6; color: #111; margin-bottom: 12px; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 500; }
-    .pdf-btn:hover { background: #2563eb; color: white; }
-
-    /* Main viewer area */
-    .main { background: #f0f4f9; padding: 20px; display: flex; flex-direction: column; }
-    .viewer-card { flex: 1; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 10px; display: flex; flex-direction: column; }
-    iframe { flex: 1; width: 100%; border: none; border-radius: 6px; margin-bottom: 12px; }
-
-    /* Notes */
-    .notes { background: #f9fafc; border-radius: 8px; padding: 10px; display: none; flex-direction: column; border: 1px solid #ddd; }
-    .notes textarea { width: 100%; height: 100px; resize: none; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
-    .notes button { margin-top: 8px; padding: 10px; border: none; border-radius: 6px; background: #2563eb; color: white; font-weight: bold; cursor: pointer; }
-    .notes button:hover { background: #1d4ed8; }
+    /* ... your CSS styles */
   </style>
 </head>
 <body>
-  <header>📚 My PDF Library</header>
-  <div class="container">
-    <div class="sidebar" id="pdf-list"></div>
-    <div class="main">
-      <div class="viewer-card">
-        <iframe id="pdf-viewer" src=""></iframe>
-        <div class="notes" id="notes-section">
-          <textarea id="notes-text" placeholder="Write your notes here..."></textarea>
-          <button onclick="saveNotes()">💾 Save Notes</button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script type="module">
+    // Explicitly import Firebase libraries as modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  <script type="module">
     // 🔹 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyB_wQ7Iqt7ZaoNRok7g0ZINdWG24Dlklko",
@@ -53,8 +21,10 @@
       messagingSenderId: "670696936342",
       appId: "1:670696936342:web:e11b8118321899757143b7"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+
+    // Initialize Firebase and Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     let currentPdf = null;
 
@@ -77,8 +47,9 @@
           notesSection.style.display = "flex";
 
           // Load notes from Firestore
-          const doc = await db.collection("notes").doc(currentPdf).get();
-          notesText.value = doc.exists ? doc.data().content : "";
+          const docRef = doc(db, "notes", currentPdf);
+          const docSnap = await getDoc(docRef);
+          notesText.value = docSnap.exists() ? docSnap.data().content : "";
         };
         list.appendChild(btn);
       });
@@ -87,7 +58,8 @@
     async function saveNotes() {
       const notesText = document.getElementById("notes-text").value;
       if (currentPdf) {
-        await db.collection("notes").doc(currentPdf).set({ content: notesText });
+        const docRef = doc(db, "notes", currentPdf);
+        await setDoc(docRef, { content: notesText });
         alert("✅ Notes saved to cloud!");
       } else {
         alert("⚠️ Open a PDF first!");
