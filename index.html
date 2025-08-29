@@ -5,25 +5,107 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My PDF Library</title>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f9fafc; }
-    header { background: #2563eb; color: white; padding: 15px 20px; font-size: 1.4rem; font-weight: bold; display: flex; align-items: center; }
-    .container { display: grid; grid-template-columns: 250px 1fr; height: calc(100vh - 60px); }
+    body { 
+      margin: 0; 
+      font-family: Arial, sans-serif; 
+      background: #f9fafc; 
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header { 
+      background: #2563eb; 
+      color: white; 
+      padding: 15px 20px; 
+      font-size: 1.4rem; 
+      font-weight: bold; 
+      display: flex; 
+      align-items: center; 
+    }
+    .container { 
+      display: grid; 
+      grid-template-columns: 250px 1fr; 
+      flex: 1; /* Allows container to grow and fill remaining height */
+    }
     
     /* Sidebar */
-    .sidebar { background: #ffffff; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; }
-    .pdf-btn { background: #f3f4f6; color: #111; margin-bottom: 12px; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 500; }
-    .pdf-btn:hover { background: #2563eb; color: white; }
+    .sidebar { 
+      background: #ffffff; 
+      border-right: 1px solid #ddd; 
+      padding: 20px; 
+      overflow-y: auto; 
+    }
+    .pdf-btn { 
+      background: #f3f4f6; 
+      color: #111; 
+      margin-bottom: 12px; 
+      padding: 12px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      font-weight: 500; 
+    }
+    .pdf-btn:hover { 
+      background: #2563eb; 
+      color: white; 
+    }
 
     /* Main viewer area */
-    .main { background: #f0f4f9; padding: 20px; display: flex; flex-direction: column; }
-    .viewer-card { flex: 1; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 10px; display: flex; flex-direction: column; }
-    iframe { flex: 1; width: 100%; border: none; border-radius: 6px; margin-bottom: 12px; }
+    .main { 
+      background: #f0f4f9; 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+    }
+    .viewer-card { 
+      flex: 1; 
+      background: white; 
+      border-radius: 10px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+      padding: 10px; 
+      display: flex; 
+      flex-direction: column; 
+    }
+    iframe { 
+      flex: 1; 
+      width: 100%; 
+      height: 100%; /* Ensures iframe fills its parent container */
+      border: none; 
+      border-radius: 6px; 
+      margin-bottom: 12px; 
+    }
 
     /* Notes */
-    .notes { background: #f9fafc; border-radius: 8px; padding: 10px; display: none; flex-direction: column; border: 1px solid #ddd; }
-    .notes textarea { width: 100%; height: 100px; resize: none; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
-    .notes button { margin-top: 8px; padding: 10px; border: none; border-radius: 6px; background: #2563eb; color: white; font-weight: bold; cursor: pointer; }
-    .notes button:hover { background: #1d4ed8; }
+    .notes { 
+      background: #f9fafc; 
+      border-radius: 8px; 
+      padding: 10px; 
+      border: 1px solid #ddd; 
+      display: none; /* Keep notes hidden by default */
+      flex-direction: column;
+    }
+    .notes textarea { 
+      flex: 1; /* Allows textarea to grow */
+      width: 100%; 
+      height: 100px; 
+      resize: vertical; /* Allow vertical resizing only */
+      padding: 8px; 
+      border-radius: 6px; 
+      border: 1px solid #ccc; 
+    }
+    .notes button { 
+      margin-top: 8px; 
+      padding: 10px; 
+      border: none; 
+      border-radius: 6px; 
+      background: #2563eb; 
+      color: white; 
+      font-weight: bold; 
+      cursor: pointer; 
+    }
+    .notes button:hover { 
+      background: #1d4ed8; 
+    }
   </style>
 </head>
 <body>
