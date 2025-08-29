@@ -23,6 +23,13 @@
             align-items: center; 
             justify-content: space-between;
         }
+        .header-text {
+            display: flex;
+            align-items: center;
+        }
+        .header-title {
+            margin-right: 20px;
+        }
         .container { 
             display: grid; 
             grid-template-columns: 250px 1fr; 
@@ -41,15 +48,15 @@
             background: #f3f4f6; 
             color: #111; 
             margin-bottom: 12px; 
-            padding: 20px; 
+            padding: 20px;
             border-radius: 8px; 
             cursor: pointer; 
             transition: 0.2s; 
-            font-weight: bold; 
-            font-size: 1.2rem; 
+            font-weight: bold;
+            font-size: 1.2rem;
         }
         .photo-btn:hover { 
-            background: #2563eb; 
+            background: #1d4ed8; 
             color: white; 
         }
 
@@ -66,18 +73,16 @@
             background: white; 
             border-radius: 10px; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            padding: 20px;
             display: flex; 
             flex-direction: column; 
-            align-items: center;
-            justify-content: center;
         }
-        .photo-viewer { 
+        img { 
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            border: none; 
             border-radius: 6px; 
-            margin-bottom: 12px; 
+            margin-bottom: 12px;
         }
 
         /* Notes */
@@ -88,7 +93,6 @@
             border: 1px solid #ddd; 
             display: none; 
             flex-direction: column;
-            margin-top: 10px;
         }
         .notes textarea { 
             flex: 1; 
@@ -112,34 +116,20 @@
         .notes button:hover { 
             background: #1d4ed8; 
         }
-
-        /* Message box */
-        .message-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 1.2rem;
-            text-align: center;
-            z-index: 1000;
-            display: none;
-        }
     </style>
 </head>
 <body>
     <header>
-        <span>📷 My Photo Library</span>
-        <span>A</span>
+        <div class="header-text">
+            <span class="header-title">📚 My Photo Library</span>
+            <span>B</span>
+        </div>
     </header>
     <div class="container">
         <div class="sidebar" id="photo-list"></div>
         <div class="main">
             <div class="viewer-card">
-                <img id="photo-viewer" src="" alt="Selected Photo" class="photo-viewer">
+                <img id="photo-viewer" src="">
                 <div class="notes" id="notes-section">
                     <textarea id="notes-text" placeholder="Write your notes here..."></textarea>
                     <button id="save-button">💾 Save Notes</button>
@@ -147,69 +137,81 @@
             </div>
         </div>
     </div>
-    <div id="message-box" class="message-box"></div>
-
+    
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Global variables for Firebase configuration
+        // Global variables provided by the environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = {
-            apiKey: "AIzaSyB_wQ7Iqt7ZaoNRok7g0ZINdWG24Dlklko",
-            authDomain: "my-pdf-library-23f16.firebaseapp.com",
-            projectId: "my-pdf-library-23f16",
-            storageBucket: "my-pdf-library-23f16.firebasestorage.app",
-            messagingSenderId: "670696936342",
-            appId: "1:670696936342:web:e11b8118321899757143b7"
-        };
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // Authenticate the user
-        async function authenticate() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                console.log("Authentication successful!");
-            } catch (error) {
-                console.error("Authentication failed:", error);
-            }
-        }
-        authenticate();
-
-        let currentPhoto = null;
+        
+        let currentPhotoName = null;
+        let userId = null;
         const photoList = document.getElementById("photo-list");
         const photoViewer = document.getElementById("photo-viewer");
         const notesSection = document.getElementById("notes-section");
         const notesText = document.getElementById("notes-text");
         const saveButton = document.getElementById("save-button");
-        const messageBox = document.getElementById("message-box");
         
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("User is authenticated with UID:", user.uid);
-                loadPhotos();
-            } else {
-                console.log("User is not authenticated.");
-            }
-        });
-
-        function showMessage(message, duration = 3000) {
-            messageBox.textContent = message;
-            messageBox.style.display = 'block';
+        const messageBox = (message) => {
+            const box = document.createElement("div");
+            box.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 1.2em;
+                text-align: center;
+            `;
+            box.textContent = message;
+            document.body.appendChild(box);
             setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, duration);
-        }
+                document.body.removeChild(box);
+            }, 2000);
+        };
+
+        const getOrCreateUserId = () => {
+            if (auth.currentUser) {
+                return auth.currentUser.uid;
+            }
+            let tempUserId = localStorage.getItem('tempUserId');
+            if (!tempUserId) {
+                tempUserId = crypto.randomUUID();
+                localStorage.setItem('tempUserId', tempUserId);
+            }
+            return tempUserId;
+        };
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+            } else {
+                if (initialAuthToken) {
+                    try {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } catch (error) {
+                        console.error("Custom token sign-in failed:", error);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                }
+            }
+            userId = getOrCreateUserId();
+            loadPhotos();
+        });
 
         async function loadPhotos() {
             try {
@@ -223,20 +225,19 @@
                 photos.forEach(photo => {
                     const btn = document.createElement("div");
                     btn.className = "photo-btn";
-                    btn.textContent = "📷 " + photo.name;
+                    btn.textContent = "🖼️ " + photo.name;
                     btn.onclick = async () => {
                         photoViewer.src = photo.file;
-                        currentPhoto = photo.name;
+                        currentPhotoName = photo.name;
                         notesSection.style.display = "flex";
 
-                        const userId = auth.currentUser?.uid || 'anonymous';
-                        const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPhoto);
-                        
-                        try {
+                        if (userId) {
+                            const docRef = doc(db, `artifacts/${appId}/users/${userId}/notes/${currentPhotoName}`);
                             const docSnap = await getDoc(docRef);
                             notesText.value = docSnap.exists() ? docSnap.data().content : "";
-                        } catch (e) {
-                            console.error("Error fetching notes:", e);
+                        } else {
+                            notesText.value = "";
+                            console.log("User not authenticated, cannot load notes.");
                         }
                     };
                     photoList.appendChild(btn);
@@ -250,18 +251,17 @@
         }
 
         async function saveNotes() {
-            if (currentPhoto && auth.currentUser) {
-                const userId = auth.currentUser.uid;
-                const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPhoto);
+            if (currentPhotoName && userId) {
                 try {
+                    const docRef = doc(db, `artifacts/${appId}/users/${userId}/notes/${currentPhotoName}`);
                     await setDoc(docRef, { content: notesText.value });
-                    showMessage("✅ Notes saved to cloud!");
-                } catch (e) {
-                    console.error("Error saving notes:", e);
-                    showMessage("⚠️ Error saving notes. See console.");
+                    messageBox("✅ Notes saved to cloud!");
+                } catch (error) {
+                    console.error("Error saving notes:", error);
+                    messageBox("❌ Error saving notes.");
                 }
             } else {
-                showMessage("⚠️ Open a photo and ensure you are authenticated!");
+                messageBox("⚠️ Open a photo first!");
             }
         }
 
