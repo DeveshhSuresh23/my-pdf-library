@@ -147,16 +147,41 @@
     <div id="message-box" class="message-box"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase configuration
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_wQ7Iqt7ZaoNRok7g0ZINdWG24Dlklko",
+            authDomain: "my-pdf-library-23f16.firebaseapp.com",
+            projectId: "my-pdf-library-23f16",
+            storageBucket: "my-pdf-library-23f16.firebasestorage.app",
+            messagingSenderId: "670696936342",
+            appId: "1:670696936342:web:e11b8118321899757143b7"
+        };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Authenticate the user
+        async function authenticate() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                console.log("Authentication successful!");
+            } catch (error) {
+                console.error("Authentication failed:", error);
+            }
+        }
+        authenticate();
 
         let currentPdf = null;
         const pdfList = document.getElementById("pdf-list");
@@ -165,6 +190,13 @@
         const notesText = document.getElementById("notes-text");
         const saveButton = document.getElementById("save-button");
         const messageBox = document.getElementById("message-box");
+        
+        // Log the user ID so you can reference it in the database
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log("User ID:", user.uid);
+            }
+        });
 
         function showMessage(message, duration = 3000) {
             messageBox.textContent = message;
@@ -191,7 +223,9 @@
                         currentPdf = pdf.name;
                         notesSection.style.display = "flex";
 
-                        const docRef = doc(db, "artifacts", appId, "public", "data", "notes", currentPdf);
+                        const userId = auth.currentUser?.uid || 'anonymous';
+                        const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPdf);
+                        
                         try {
                             const docSnap = await getDoc(docRef);
                             notesText.value = docSnap.exists() ? docSnap.data().content : "";
@@ -211,7 +245,8 @@
 
         async function saveNotes() {
             if (currentPdf) {
-                const docRef = doc(db, "artifacts", appId, "public", "data", "notes", currentPdf);
+                const userId = auth.currentUser?.uid || 'anonymous';
+                const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPdf);
                 try {
                     await setDoc(docRef, { content: notesText.value });
                     showMessage("✅ Notes saved to cloud!");
