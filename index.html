@@ -8,7 +8,7 @@
     body { 
       margin: 0; 
       font-family: Arial, sans-serif; 
-      background: #f9fafc; 
+      background: yellow; /* This sets the background color to yellow */
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -25,8 +25,8 @@
     .container { 
       display: grid; 
       grid-template-columns: 250px 1fr; 
-      flex: 1; /* Allows container to grow and fill remaining height */
-      overflow: hidden; /* Prevents scrollbars on the container itself */
+      flex: 1; 
+      overflow: hidden; 
     }
     
     /* Sidebar */
@@ -71,7 +71,7 @@
     iframe { 
       flex: 1; 
       width: 100%; 
-      height: 100%; /* Ensures iframe fills its parent container */
+      height: 100%; 
       border: none; 
       border-radius: 6px; 
       margin-bottom: 12px; 
@@ -83,14 +83,14 @@
       border-radius: 8px; 
       padding: 10px; 
       border: 1px solid #ddd; 
-      display: none; /* Keep notes hidden by default */
+      display: none; 
       flex-direction: column;
     }
     .notes textarea { 
-      flex: 1; /* Allows textarea to grow */
+      flex: 1; 
       width: 100%; 
       min-height: 100px;
-      resize: vertical; /* Allow vertical resizing only */
+      resize: vertical; 
       padding: 8px; 
       border-radius: 6px; 
       border: 1px solid #ccc; 
