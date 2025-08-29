@@ -3,40 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My PDF Library with Cloud Notes</title>
+  <title>My PDF Library</title>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f9; }
-    header { background: #4a90e2; color: white; padding: 15px; text-align: center; font-size: 1.5rem; font-weight: bold; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f9fafc; }
+    header { background: #2563eb; color: white; padding: 15px 20px; font-size: 1.4rem; font-weight: bold; display: flex; align-items: center; }
     .container { display: grid; grid-template-columns: 250px 1fr; height: calc(100vh - 60px); }
-    .sidebar { background: #fff; border-right: 1px solid #ccc; padding: 20px; overflow-y: auto; }
-    .pdf-btn { background: #4a90e2; color: white; margin-bottom: 10px; padding: 10px; border-radius: 6px; text-align: center; cursor: pointer; transition: background 0.2s ease; }
-    .pdf-btn:hover { background: #357abd; }
-    .viewer { display: flex; flex-direction: column; background: #2f6d85; padding: 10px; }
-    iframe { flex: 1; border: none; border-radius: 6px; background: white; margin-bottom: 10px; }
-    .notes { background: white; border-radius: 6px; padding: 10px; display: none; flex-direction: column; }
-    .notes textarea { width: 100%; height: 100px; resize: none; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-    .notes button { margin-top: 8px; padding: 6px 12px; border: none; border-radius: 4px; background: #4a90e2; color: white; cursor: pointer; }
-    .notes button:hover { background: #357abd; }
+    
+    /* Sidebar */
+    .sidebar { background: #ffffff; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; }
+    .pdf-btn { background: #f3f4f6; color: #111; margin-bottom: 12px; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 500; }
+    .pdf-btn:hover { background: #2563eb; color: white; }
+
+    /* Main viewer area */
+    .main { background: #f0f4f9; padding: 20px; display: flex; flex-direction: column; }
+    .viewer-card { flex: 1; background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 10px; display: flex; flex-direction: column; }
+    iframe { flex: 1; width: 100%; border: none; border-radius: 6px; margin-bottom: 12px; }
+
+    /* Notes */
+    .notes { background: #f9fafc; border-radius: 8px; padding: 10px; display: none; flex-direction: column; border: 1px solid #ddd; }
+    .notes textarea { width: 100%; height: 100px; resize: none; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+    .notes button { margin-top: 8px; padding: 10px; border: none; border-radius: 6px; background: #2563eb; color: white; font-weight: bold; cursor: pointer; }
+    .notes button:hover { background: #1d4ed8; }
   </style>
 </head>
 <body>
-  <header>📚 My PDF Collection</header>
+  <header>📚 My PDF Library</header>
   <div class="container">
     <div class="sidebar" id="pdf-list"></div>
-    <div class="viewer">
-      <iframe id="pdf-viewer" src=""></iframe>
-      <div class="notes" id="notes-section">
-        <textarea id="notes-text" placeholder="Write your notes here..."></textarea>
-        <button onclick="saveNotes()">💾 Save Notes</button>
+    <div class="main">
+      <div class="viewer-card">
+        <iframe id="pdf-viewer" src=""></iframe>
+        <div class="notes" id="notes-section">
+          <textarea id="notes-text" placeholder="Write your notes here..."></textarea>
+          <button onclick="saveNotes()">💾 Save Notes</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // 🔹 Your Firebase config
+    // 🔹 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyB_wQ7Iqt7ZaoNRok7g0ZINdWG24Dlklko",
       authDomain: "my-pdf-library-23f16.firebaseapp.com",
@@ -45,8 +54,6 @@
       messagingSenderId: "670696936342",
       appId: "1:670696936342:web:e11b8118321899757143b7"
     };
-
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -82,9 +89,9 @@
       const notesText = document.getElementById("notes-text").value;
       if (currentPdf) {
         await db.collection("notes").doc(currentPdf).set({ content: notesText });
-        alert("Notes saved to cloud!");
+        alert("✅ Notes saved to cloud!");
       } else {
-        alert("Open a PDF first!");
+        alert("⚠️ Open a PDF first!");
       }
     }
 
