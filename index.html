@@ -3,98 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My PDF Library</title>
+  <title>My PDF Library with Cloud Notes</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-    }
-
-    header {
-      background: #4a90e2;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-
-    .container {
-      display: grid;
-      grid-template-columns: 250px 1fr; /* sidebar + viewer */
-      height: calc(100vh - 60px);
-    }
-
-    /* Sidebar */
-    .sidebar {
-      background: #fff;
-      border-right: 1px solid #ccc;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .pdf-btn {
-      background: #4a90e2;
-      color: white;
-      margin-bottom: 10px;
-      padding: 12px;
-      border-radius: 6px;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .pdf-btn:hover {
-      background: #357abd;
-    }
-
-    /* PDF Viewer area */
-    .viewer {
-      background: #2f6d85;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    iframe {
-      width: 95%;
-      height: 95%;
-      border: none;
-      border-radius: 6px;
-      background: white;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f9; }
+    header { background: #4a90e2; color: white; padding: 15px; text-align: center; font-size: 1.5rem; font-weight: bold; }
+    .container { display: grid; grid-template-columns: 250px 1fr; height: calc(100vh - 60px); }
+    .sidebar { background: #fff; border-right: 1px solid #ccc; padding: 20px; overflow-y: auto; }
+    .pdf-btn { background: #4a90e2; color: white; margin-bottom: 10px; padding: 10px; border-radius: 6px; text-align: center; cursor: pointer; transition: background 0.2s ease; }
+    .pdf-btn:hover { background: #357abd; }
+    .viewer { display: flex; flex-direction: column; background: #2f6d85; padding: 10px; }
+    iframe { flex: 1; border: none; border-radius: 6px; background: white; margin-bottom: 10px; }
+    .notes { background: white; border-radius: 6px; padding: 10px; display: none; flex-direction: column; }
+    .notes textarea { width: 100%; height: 100px; resize: none; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    .notes button { margin-top: 8px; padding: 6px 12px; border: none; border-radius: 4px; background: #4a90e2; color: white; cursor: pointer; }
+    .notes button:hover { background: #357abd; }
   </style>
 </head>
 <body>
   <header>📚 My PDF Collection</header>
-
   <div class="container">
     <div class="sidebar" id="pdf-list"></div>
     <div class="viewer">
       <iframe id="pdf-viewer" src=""></iframe>
+      <div class="notes" id="notes-section">
+        <textarea id="notes-text" placeholder="Write your notes here..."></textarea>
+        <button onclick="saveNotes()">💾 Save Notes</button>
+      </div>
     </div>
   </div>
 
   <script>
+    // 🔹 Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB_wQ7Iqt7ZaoNRok7g0ZINdWG24Dlklko",
+      authDomain: "my-pdf-library-23f16.firebaseapp.com",
+      projectId: "my-pdf-library-23f16",
+      storageBucket: "my-pdf-library-23f16.firebasestorage.app",
+      messagingSenderId: "670696936342",
+      appId: "1:670696936342:web:e11b8118321899757143b7"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentPdf = null;
+
     async function loadPDFs() {
       const response = await fetch("pdfs.json");
       const pdfs = await response.json();
 
       const list = document.getElementById("pdf-list");
       const viewer = document.getElementById("pdf-viewer");
+      const notesSection = document.getElementById("notes-section");
+      const notesText = document.getElementById("notes-text");
 
       pdfs.forEach(pdf => {
         const btn = document.createElement("div");
         btn.className = "pdf-btn";
-        btn.textContent = pdf.name;
-        btn.onclick = () => {
+        btn.textContent = "📖 " + pdf.name;
+        btn.onclick = async () => {
           viewer.src = pdf.file;
+          currentPdf = pdf.file;
+          notesSection.style.display = "flex";
+
+          // Load notes from Firestore
+          const doc = await db.collection("notes").doc(currentPdf).get();
+          notesText.value = doc.exists ? doc.data().content : "";
         };
         list.appendChild(btn);
       });
     }
+
+    async function saveNotes() {
+      const notesText = document.getElementById("notes-text").value;
+      if (currentPdf) {
+        await db.collection("notes").doc(currentPdf).set({ content: notesText });
+        alert("Notes saved to cloud!");
+      } else {
+        alert("Open a PDF first!");
+      }
+    }
+
     loadPDFs();
   </script>
 </body>
