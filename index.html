@@ -130,7 +130,7 @@
 <body>
     <header>
         <span>📚 My PDF Library</span>
-        <span>naan</span>
+        <span>A</span>
     </header>
     <div class="container">
         <div class="sidebar" id="pdf-list"></div>
@@ -148,7 +148,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase configuration
@@ -191,10 +191,12 @@
         const saveButton = document.getElementById("save-button");
         const messageBox = document.getElementById("message-box");
         
-        // Log the user ID so you can reference it in the database
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("User ID:", user.uid);
+                console.log("User is authenticated with UID:", user.uid);
+                loadPDFs();
+            } else {
+                console.log("User is not authenticated.");
             }
         });
 
@@ -214,6 +216,7 @@
                 }
                 const pdfs = await response.json();
 
+                pdfList.innerHTML = '';
                 pdfs.forEach(pdf => {
                     const btn = document.createElement("div");
                     btn.className = "pdf-btn";
@@ -244,8 +247,8 @@
         }
 
         async function saveNotes() {
-            if (currentPdf) {
-                const userId = auth.currentUser?.uid || 'anonymous';
+            if (currentPdf && auth.currentUser) {
+                const userId = auth.currentUser.uid;
                 const docRef = doc(db, "artifacts", appId, "users", userId, "notes", currentPdf);
                 try {
                     await setDoc(docRef, { content: notesText.value });
@@ -255,12 +258,12 @@
                     showMessage("⚠️ Error saving notes. See console.");
                 }
             } else {
-                showMessage("⚠️ Open a PDF first!");
+                showMessage("⚠️ Open a PDF and ensure you are authenticated!");
             }
         }
 
         saveButton.addEventListener('click', saveNotes);
-        loadPDFs();
     </script>
 </body>
 </html>
+
